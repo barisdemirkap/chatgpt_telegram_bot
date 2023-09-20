@@ -24,7 +24,7 @@ jobs:
         docker compose build
         docker compose push
     - name: Deploy
-      uses: appleboy/ssh-action@0.1.4
+      uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{secrets.HOST}}
         username: ubuntu
