@@ -28,7 +28,7 @@ jobs:
       with:
         host: ${{secrets.HOST}}
         username: ubuntu
-        key: ${{secrets.HOST_KEY}}
+        key: ${{secrets.ACTION_PRIVATE_KEY}}
         command_timeout: 30m
         envs: GITHUB_SHA,REPO
         script: |
