@@ -14,5 +14,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Docker Login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+    - name: Docker Push
+      run: |
+        docker compose build
+        docker compose push
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{secrets.DEPLOY_HOST}}
+        username: ubuntu
+        key: ${{secrets.ACTION_PRIVATE_KEY}}
+        command_timeout: 30m
+        envs: GITHUB_SHA,REPO
+        script: |
+          cd chatgpt_telegram_bot/
+          git pull
+          sudo sed -i '1s/.*/telegram_token: "$${{secrets.OPENAI_API_TOKEN}}"/' /config/config.example.yml
+          sudo sed -i '2s/.*/openai_api_key: "$${{secrets.TELEGRAM_API_TOKEN}}"/' /config/config.example.yml
+          mv config/config.example.yml config/config.yml
+          mv config/config.example.env config/config.env
+          sudo docker login -u $${{secrets.DOCKER_USER}} -p $${{secrets.DOCKER_PASSWORD}}
+          docker-compose --env-file config/config.env up --build
+          sudo docker image prune -a -f
+          sudo docker container prune -f
+          sudo docker system prune -a -f
