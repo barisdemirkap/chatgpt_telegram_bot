@@ -41,5 +41,5 @@ jobs:
           sudo docker login -u $${{secrets.DOCKER_USER}} -p $${{secrets.DOCKER_PASSWORD}}
           docker-compose --env-file config/config.env up --build
           sudo docker image prune -a -f
-          sudo docker container prune -f
+
           sudo docker system prune -a -f
